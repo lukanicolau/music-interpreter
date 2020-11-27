@@ -1,18 +1,19 @@
 ﻿using UnityEngine;
+using System;
 public static class Music
 {
-    private static string[] naturalNotes = { "C", "D", "E", "F", "G", "A", "B" };
+    public static string[] naturalNotesNames = { "C", "D", "E", "F", "G", "A", "B" };
 
-    //Esto capaz esta al pedo. segun el intervalo, agarrar una natural y agregarle # o b.
-    private static string[] noteNamesInSharp = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }; //falta este
-    private static string[] noteNamesInFlat = { "C", "Db","D", "Eb","Fb", "F", "Gb", "G", "Ab", "A", "Bb", "Cb" };
+    private static string[] noteNamesInSharp = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+    
+    private static string[] noteNamesInFlat = { "C", "Db","D", "Eb","E", "F", "Gb", "G", "Ab", "A", "Bb", "B" };
 
     private static string[] intervalNames = {"Perfect Unison", "Minor second", "Major second", "Minor third", "Major third", "Perfect fourth", "Augmented fourth", "Perfect fifth",
                                         "Minor sixth", "Major sixth", "Minor seventh", "Major seventh", "Perfect octave", "Minor ninth", "Major ninth", "Minor tenth", "Major tenth"};
 
-    private static string[] chordTypeNames = { "", "m", "dim", "sus" };
+    private static string[] chordTypeNames = { "", "m", "dim", "sus"};
 
-    private static string[] additions = {"", "", "add2", "", "", "add4", "add4#", "", "add5#", "6", "7", "maj7", "", "", "add9", "", "", ""};
+    private static string[] additions = {"", "", "add2", "", "", "add4", "add4#", "", "add5#", "add6", "7", "maj7", "", "", "add9", "", "", ""};
     private static string[] implicitChords = { "maj9", "9", "m9" }; //Only the ninth implicits are written because of the keyboard length
     public static Note GetNote(Key key)
     {
@@ -20,33 +21,97 @@ public static class Music
         return note;
     }
 
-    //Returns note in octave 1
+    ///<summary>Returns note in octave 1</summary>
     public static Note GetNote1(Note note)
     {
         return (Note) Mathf.Repeat((float)note, 12);
     }
 
-    //Returns the interval between two notes
+
+    ///<summary>Returns the interval between two notes</summary>
     public static Interval GetInterval(Note a, Note b)
     {
         int distance = Mathf.Abs(a - b);
         Interval interval = (Interval) distance;
         return interval;
     }
-
-    //Returns a string of the note
-    public static string GetNoteName(Note note)
+    public static string GetNoteName(Note note, bool inSharp)
     {
-        return noteNamesInSharp[(int) Mathf.Repeat((float)note, 12)];
+        if (inSharp)
+        {
+            return noteNamesInSharp[(int)Mathf.Repeat((float)note, 12)];
+        } else
+        {
+            return noteNamesInFlat[(int)Mathf.Repeat((float)note, 12)];
+        }
     }
 
-    //Returns a string of the interval
+    ///<summary>Returns a string of the note</summary>
+    public static string GetNaturalNoteName(NaturalNote naturalNote)
+    {
+        return naturalNotesNames[(int)Mathf.Repeat((int)naturalNote, 7)];
+    }
+    public static Note NaturalToNote(NaturalNote naturalNote)
+    {
+        int naturalNoteIndex = (int)naturalNote;
+        if (naturalNoteIndex <= 2)
+        {
+            return (Note) (naturalNoteIndex*2);
+        }
+        else if (naturalNoteIndex <= 6)
+        {
+            return (Note)(naturalNoteIndex * 2 - 1);
+        } else
+        {
+            return (Note)(naturalNoteIndex * 2 - 2);
+        }
+    }
+    ///<summary>Dir = -1 turns C# in C; Dir = 1 turns C# in D</summary>
+    public static NaturalNote NoteToNatural(Note note, int dir)
+    {
+        int noteIndex = (int)note;
+        float result = (float)note / 2f;
+        if (noteIndex <= 4 || noteIndex > 11)
+        {
+            if (dir == -1)
+            {
+                return (NaturalNote)Mathf.FloorToInt(result);
+            } else
+            {
+                return (NaturalNote)Mathf.CeilToInt(result);
+            }
+        } else
+        {
+            if (dir == -1)
+            {
+                return (NaturalNote)Mathf.CeilToInt(result);
+            } else
+            {
+                return (NaturalNote)Mathf.FloorToInt(result);
+            }
+        }
+    }
+
+    ///<summary>Returns a string of the interval</summary>
+    public static int GetIntervalNumber(Interval interval) {
+        int intervalIndex = (int)interval;
+        if (intervalIndex <= 7)
+        {
+            return Mathf.CeilToInt(intervalIndex / 2f);
+        } else if (intervalIndex > 7 && intervalIndex <= 12)
+        {
+            return Mathf.CeilToInt((intervalIndex+1) / 2f);
+        } else
+        {
+            return Mathf.CeilToInt((intervalIndex + 2) / 2f);
+        }
+    }
     public static string GetIntervalName(Interval interval)
     {
         return intervalNames[(int)interval];
     }
 
-    public static string GetChordTypeName(Chord.ChordType chordType)
+    public static string GetChordTypeName(Chords.ChordType chordType)
     {
         return chordTypeNames[(int) chordType];
     }
@@ -60,8 +125,21 @@ public static class Music
     {
         return implicitChords[index];
     }
-    
-    
+
+    public enum NaturalNote
+    {
+        C,
+        D,
+        E,
+        F,
+        G,
+        A,
+        B,
+        C2,
+        D2,
+        E2,
+    }
+
     public enum Note
     {
         C,
@@ -93,7 +171,7 @@ public static class Music
         PERFECT_FOURTH,
         AUGMENTED_FOURTH,
         PERFECT_FIFTH,
-        MINOR_SIXTH,
+        AUGMENTED_FIFTH,
         MAJOR_SIXTH,
         MINOR_SEVENTH,
         MAJOR_SEVENTH,
