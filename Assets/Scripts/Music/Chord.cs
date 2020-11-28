@@ -6,27 +6,21 @@ using System;
 public class Chord
 {
     public List<Music.Note> notes;
-    public Chords.ChordInversion inversion;
-    public Chords.ChordType chordType;
+    public ChordInversion inversion;
+    public ChordType chordType;
     public Music.Note tonic;
 
     public bool isUnknown;
     public bool isInterval;
     public List<Music.Note> differentNotes;
 
-    private bool inSharp;
     private int susN; //Number of sus
-    private int addN;
-    private string addadd = "";
-
-    private string plusInfo;
     private List<Music.Note> additions;
 
-    public Chord(List<Music.Note> notes, bool inSharp)
+    public Chord(List<Music.Note> notes)
     {
         additions = new List<Music.Note>();
         this.notes = notes;
-        this.inSharp = inSharp;
         differentNotes = new List<Music.Note>();
         differentNotes.AddRange(notes);
         isInterval = false;
@@ -60,152 +54,37 @@ public class Chord
                 additions.Add(notes[i - 1]);
                 additions.Remove(notes[i + 2]);
             }
-
-            //Set chord characteristics based on three notes (two intervals).
-
-            //First priority
+            //Set chord characteristics based on three notes (two intervals)
             for (int j = 0; j < 3; j++)
             {
                 if (intervals.SequenceEqual(Chords.majorChordInvertions[j]))
                 {
-                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], Chords.ChordType.MAJOR, (Chords.ChordInversion)j);
+                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], ChordType.MAJOR, (ChordInversion)j);
+                    Debug.Log("entre en" + i);
                     return;
                 }
                 else if (intervals.SequenceEqual(Chords.minorChordInvertions[j]))
                 {
-                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], Chords.ChordType.MINOR, (Chords.ChordInversion)j);
+                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], ChordType.MINOR, (ChordInversion)j);
+                    Debug.Log("entre en" + i + " y j " + j);
                     return;
                 }
                 else if (intervals.SequenceEqual(Chords.diminishedChordInvertions[j]))
                 {
-                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], Chords.ChordType.DIMINISHED, (Chords.ChordInversion)j);
+                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], ChordType.DIMINISHED, (ChordInversion)j);
+                    Debug.Log("entre en" + i);
                     return;
-                } 
-                else if (intervals.SequenceEqual(Chords.pseudoMaj7[j]))
+                }
+                else if (j < 2 && intervals.SequenceEqual(Chords.susChords[j]))
                 {
-                    SetChord(characteristicNotes[(int)Mathf.Repeat(-j, 3)], Chords.ChordType.MAJOR, (Chords.ChordInversion)j);
-                    plusInfo = "maj7";
-                    return;
-                } 
-                else if (j < 2) {
-                    if (j < 1)
-                    {
-                        if (intervals.SequenceEqual(Chords.augmentedTriad))
-                        {
-                            SetChord(characteristicNotes[0], Chords.ChordType.MAJOR);
-                            plusInfo = "5#";
-                            return;
-                        }
-                        else if (intervals.SequenceEqual(Chords.add4Chord))
-                        {
-                            SetChord(characteristicNotes[0], Chords.ChordType.MINOR);
-                            if (additions.Count > 0)
-                            {
-                                if (Music.GetInterval(tonic, additions[0]) != Music.Interval.MINOR_SEVENTH) plusInfo = "4";
-                            } else
-                            {
-                                plusInfo = "4";
-                            }
-                            return;
-                        }
-                    }
-                    if (intervals.SequenceEqual(Chords.add2Chords[j]))
-                    {
-                        SetChord(characteristicNotes[0], (Chords.ChordType)j);
-                        if (additions.Count > 0)
-                        {
-                            if (Music.GetInterval(tonic, additions[0]) != Music.Interval.MINOR_SEVENTH) plusInfo = "4";
-                        }
-                        else
-                        {
-                            plusInfo = "4";
-                        }
-                        return;
-                    }
-                }  
-            }
-            //Second priority
-            for (int j = 0; j < 2; j++)
-            {
-                if (intervals.SequenceEqual(Chords.susChords[j]))
-                {
-                    SetChord(characteristicNotes[0], Chords.ChordType.SUS);
-                    plusInfo = plusInfo + (j + 1) * 2;
+                    Debug.Log("entre en" + i);
+                    SetChord(characteristicNotes[0], ChordType.SUS);
+                    susN = (j + 1) * 2;
                     return;
                 }
             }
         }
         isUnknown = true;
-    }
-
-    public string GetName()
-    {
-        string name;
-        name = Music.GetNoteName(tonic, inSharp) + Music.GetChordTypeName(chordType);
-        name = name + plusInfo;
-        
-        //Add additions...
-        for (int i = 0; i < additions.Count; i++)
-        {
-            if (chordType == Chords.ChordType.MAJOR || chordType == Chords.ChordType.MINOR)
-            {
-                //Look if there's implicit additions
-                if (i < additions.Count - 1)
-                {
-                    Music.Interval[] intervals = new Music.Interval[2];
-                    intervals[i] = Music.GetInterval(tonic, additions[i]);
-                    intervals[i + 1] = Music.GetInterval(tonic, additions[i + 1]);
-
-                    if (chordType == Chords.ChordType.MAJOR)
-                    {
-                        for (int j = 0; j < 2; j++)
-                        {
-                            if (intervals.SequenceEqual(Chords.implicitAdditions[j]))
-                            {
-                                if (!name.Contains(Music.GetImplicitAdditionName(j)))
-                                {
-                                    name = name + Music.GetImplicitAdditionName(j);
-                                }
-                                goto skipAdditionsPair;
-                            }
-                        }
-                    }
-                    else if (chordType == Chords.ChordType.MINOR)
-                    {
-                        if (intervals.SequenceEqual(Chords.implicitAdditions[1]))
-                        {
-                            if (!name.Contains(Music.GetImplicitAdditionName(1)))
-                            {
-                                name = name + Music.GetImplicitAdditionName(1);
-                            }
-                            goto skipAdditionsPair;
-                        }
-                    }
-                }
-            }
-            //If there isn't, add the addition default name
-            Music.Interval interval = Music.GetInterval(tonic, additions[i]);
-            if (!name.Contains(Music.GetAdditionName(interval)))
-            {
-                name = name + Music.GetAdditionName(interval);
-            }
-            skipAdditionsPair:
-            {
-                //we go directly to the addition in i+2;
-                i++;
-                continue; 
-            }
-        }
-        return name;
-    }
-
-    //Not better just not adding?? TEST PLEASE
-    private string AddAndRemoveFromString(string myString, string value)
-    {
-        string nameAdd = value;
-        if (myString.Contains(nameAdd)) myString.Remove(myString.IndexOf(nameAdd), nameAdd.Length);
-        myString = myString + nameAdd;
-        return myString;
     }
 
     public void AddAddition(Music.Note addition)
@@ -219,7 +98,56 @@ public class Chord
         additions.Remove(addition);
     }
 
-    private void SetChord(Music.Note tonic, Chords.ChordType chordType, Chords.ChordInversion inversion)
+    public string GetName()
+    {
+        string name;
+        name = Music.GetNoteName(tonic) + Music.GetChordTypeName(chordType);
+        //If it is sus, add it's number
+        if (susN != 0) name = name + susN + " ";
+        //Add additions...
+        for (int i = 0; i < additions.Count; i++)
+        {
+            if (i < additions.Count - 1)
+            {
+                //Look if there's implicit additions
+                Music.Interval[] intervals = new Music.Interval[2];
+                intervals[i] = Music.GetInterval(tonic, additions[i]);
+                intervals[i + 1] = Music.GetInterval(tonic, additions[i + 1]);
+
+                if (chordType == ChordType.MAJOR)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        if (intervals.SequenceEqual(Chords.implicitAdditions[j]))
+                        {
+                            name = name + Music.GetImplicitAdditionName(j);
+                            goto skipAdditionsPair;
+                        }
+                    }
+                }
+                else if (chordType == ChordType.MINOR)
+                {
+                    if (intervals.SequenceEqual(Chords.implicitAdditions[1]))
+                    {
+                        name = name + Music.GetImplicitAdditionName(1);
+                        goto skipAdditionsPair;
+                    }
+                }
+            }
+        //If there isn't, add the addition default name
+        Music.Interval interval = Music.GetInterval(tonic, additions[i]);
+        name = name + Music.GetAdditionName(interval);
+        skipAdditionsPair:
+            {
+                //we go directly to the addition in i+2;
+                i++;
+                continue; 
+            }
+        }
+        return name;
+    }
+
+    private void SetChord(Music.Note tonic, ChordType chordType, ChordInversion inversion)
     {
         this.tonic = tonic;
         this.chordType = chordType;
@@ -234,10 +162,24 @@ public class Chord
         }
     }
 
-    private void SetChord(Music.Note tonic, Chords.ChordType chordType)
+    private void SetChord(Music.Note tonic, ChordType chordType)
     {
         this.tonic = tonic;
         this.chordType = chordType;
     }
 
+    public enum ChordType
+    {
+        MAJOR,
+        MINOR,
+        DIMINISHED,
+        SUS,
+    }
+
+    public enum ChordInversion
+    {
+        ROOT,
+        FIRST,
+        SECOND
+    }
 }

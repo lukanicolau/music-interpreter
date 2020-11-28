@@ -56,17 +56,18 @@ public class Instrument : MonoBehaviour
         return freeAudioSource;
     }
     
-    private List<AudioSource> GetAudioSourcesPlaying(AudioClip sound)
+    private AudioSource GetAudioSourcePlaying(AudioClip sound)
     {
-        List<AudioSource> targetAudioSources = new List<AudioSource>();
+        AudioSource targetAudioSource = audioSources[0];
         foreach (AudioSource source in playingAudioSources)
         {
             if (source.clip == sound)
             {
-                targetAudioSources.Add(source);
+                targetAudioSource = source;
+                break;
             }
         }
-        return targetAudioSources;
+        return targetAudioSource;
     }
 
     public void PlaySound(AudioClip sound, bool fadeUp)
@@ -84,11 +85,7 @@ public class Instrument : MonoBehaviour
 
     public void StopSound(AudioClip sound)
     {
-        List<AudioSource> targetAudioSources = GetAudioSourcesPlaying(sound);
-        foreach (AudioSource source in targetAudioSources)
-        {
-            StopSource(source);
-        }
+        StopSource(GetAudioSourcePlaying(sound));
     }
 
     private void StopSource(AudioSource source)
