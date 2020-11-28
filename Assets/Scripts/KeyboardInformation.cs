@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using System;
 using System.Collections.Generic;
 
 public class KeyboardInformation : MonoBehaviour
@@ -10,6 +11,9 @@ public class KeyboardInformation : MonoBehaviour
 
     private List<Music.Note> notesPlaying;
     private Chord chord;
+
+    private Music.NaturalNote firstNaturalNote;
+    private bool inSharp;
 
     private readonly string[] randomText = { "Interesing...", "Umm... I don't know what you just played", "Wow that's Spinetta as fuck", "That's not even a chord" };
 
@@ -25,7 +29,7 @@ public class KeyboardInformation : MonoBehaviour
         notesPlaying.Sort();
         if (notesPlaying.Count == 3)
         {
-            chord = new Chord(notesPlaying);
+            chord = new Chord(notesPlaying, inSharp);
         }
         else if (notesPlaying.Count > 3)
         {
@@ -44,21 +48,63 @@ public class KeyboardInformation : MonoBehaviour
         }
         if (notesPlaying.Count == 3)
         {
-            chord = new Chord(notesPlaying);
+            chord = new Chord(notesPlaying, inSharp);
         } else if (notesPlaying.Count > 3)
         {
             chord.RemoveAddition(note);
-            chord.UnderstandMe();
+            chord.UnderstandMe();  
         }
         UpdateInfo();
     }
 
     private void UpdateInfo()
     {
-        //Notes ordered from left to right as played in keyboard
+        if (notesPlaying.Count > 0)
+        {
+            //For a common and better readability, we'll use Bb and Eb instead of A# and D#
+            if (notesPlaying[0] != Music.Note.AA && notesPlaying[0] != Music.Note.DD)
+            {
+                inSharp = true;
+            }
+            else
+            {
+                inSharp = false;
+            }
+        }
+
+        if (notesPlaying.Count > 1)
+        {
+            if (inSharp)
+            {
+                firstNaturalNote = Music.NoteToNatural(notesPlaying[0], -1);
+            }
+            else
+            {
+                firstNaturalNote = Music.NoteToNatural(notesPlaying[0], 1);
+            }
+        }
+        //Notes displayed from left to right as played in keyboard
         for (int i = 0; i < notesPlaying.Count; i++)
         {
-            notesGUI.text = notesGUI.text + ", " + Music.GetNoteName(notesPlaying[i]);
+            if (i > 0)
+            {
+                //Treat the notes as Natural to decide which is is the correct one (for example, between C# and Db).
+                Music.Interval interval = Music.GetInterval(notesPlaying[0], notesPlaying[i]);
+                Music.NaturalNote naturalNote = firstNaturalNote + Music.GetIntervalNumber(interval);
+
+                notesGUI.text = notesGUI.text + ", " + Music.GetNaturalNoteName(naturalNote);
+                if (interval > Music.GetInterval(notesPlaying[0], Music.NaturalToNote(naturalNote)))
+                {
+                    notesGUI.text = notesGUI.text + "#";
+                } else if (interval < Music.GetInterval(notesPlaying[0], Music.NaturalToNote(naturalNote)))
+                {
+                    notesGUI.text = notesGUI.text + "b";
+                }
+
+            }
+            else {
+                notesGUI.text = Music.GetNoteName(notesPlaying[i], inSharp);
+            }
         }
 
         //More detailed info about the whole music phenomenon
@@ -88,13 +134,13 @@ public class KeyboardInformation : MonoBehaviour
                 }
                 else
                 {
-                    int random = Random.Range(0, randomText.Length);
+                    int random = UnityEngine.Random.Range(0, randomText.Length);
                     detailsGUI.text = randomText[random];
                 }
             }
         } else
         {
-            int random = Random.Range(0, randomText.Length);
+            int random = UnityEngine.Random.Range(0, randomText.Length);
             detailsGUI.text = randomText[random];
         }
     }
