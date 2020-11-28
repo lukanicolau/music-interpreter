@@ -5,6 +5,8 @@ using System.Collections;
 public class Instrument : MonoBehaviour
 {
     public int volume;
+    public KeyboardInfo myInfo; //THIS SHOULD BE INSTRUMENT INFO LATER
+
     private AudioSource[] audioSources;
     private List<AudioSource> playingAudioSources;
     private List<AudioSource> fadingDownAudioSources;
@@ -12,6 +14,7 @@ public class Instrument : MonoBehaviour
     private float sourceVolume;
     public void StartUp()
     {
+        myInfo = GetComponentInChildren<KeyboardInfo>();
         audioSources = GetComponents<AudioSource>();
         playingAudioSources = new List<AudioSource>();
         fadingDownAudioSources = new List<AudioSource>();

@@ -1,14 +1,9 @@
-﻿using UnityEngine;
-using TMPro;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
-public class KeyboardInformation : MonoBehaviour
+public class KeyboardInfo : InstrumentInfo
 {
-    public TextMeshProUGUI notesGUI;
-    public TextMeshProUGUI detailsGUI;
-
-
+    private InfoManager info;
     private List<Music.Note> notesPlaying;
     private Chord chord;
 
@@ -20,6 +15,7 @@ public class KeyboardInformation : MonoBehaviour
     private void Awake()
     {
         notesPlaying = new List<Music.Note>();
+        info = FindObjectOfType<InfoManager>();
     }
 
     public void AddKey(Key key)
@@ -57,7 +53,7 @@ public class KeyboardInformation : MonoBehaviour
         UpdateInfo();
     }
 
-    private void UpdateInfo()
+    public void UpdateInfo()
     {
         if (notesPlaying.Count > 0)
         {
@@ -92,56 +88,56 @@ public class KeyboardInformation : MonoBehaviour
                 Music.Interval interval = Music.GetInterval(notesPlaying[0], notesPlaying[i]);
                 Music.NaturalNote naturalNote = firstNaturalNote + Music.GetIntervalNumber(interval);
 
-                notesGUI.text = notesGUI.text + ", " + Music.GetNaturalNoteName(naturalNote);
+                info.notesGUI.text = info.notesGUI.text + ", " + Music.GetNaturalNoteName(naturalNote);
                 if (interval > Music.GetInterval(notesPlaying[0], Music.NaturalToNote(naturalNote)))
                 {
-                    notesGUI.text = notesGUI.text + "#";
+                    info.notesGUI.text = info.notesGUI.text + "#";
                 } else if (interval < Music.GetInterval(notesPlaying[0], Music.NaturalToNote(naturalNote)))
                 {
-                    notesGUI.text = notesGUI.text + "b";
+                    info.notesGUI.text = info.notesGUI.text + "b";
                 }
 
             }
             else {
-                notesGUI.text = Music.GetNoteName(notesPlaying[i], inSharp);
+                info.notesGUI.text = Music.GetNoteName(notesPlaying[i], inSharp);
             }
         }
 
         //More detailed info about the whole music phenomenon
         if (notesPlaying.Count == 0)
         {
-            notesGUI.text = "...";
-            detailsGUI.text = "";
+            info.notesGUI.text = "...";
+            info.detailsGUI.text = "";
         } else if (notesPlaying.Count == 1)
         {
-            detailsGUI.text = "A single note";
+            info.detailsGUI.text = "A single note";
         } else if (notesPlaying.Count == 2)
         { //Intervals
             Music.Interval interval = Music.GetInterval(notesPlaying[notesPlaying.Count - 2], notesPlaying[notesPlaying.Count - 1]);
-            detailsGUI.text = Music.GetIntervalName(interval);
+            info.detailsGUI.text = Music.GetIntervalName(interval);
         } else if (notesPlaying.Count >= 3)
         {
             if (chord.isInterval)
             {
                 Music.Interval interval = Music.GetInterval(chord.differentNotes[0], chord.differentNotes[1]);
-                detailsGUI.text = Music.GetIntervalName(interval);
+                info.detailsGUI.text = Music.GetIntervalName(interval);
             }
             else
             {
                 if (!chord.isUnknown)
                 {
-                    detailsGUI.text = chord.GetName();
+                    info.detailsGUI.text = chord.GetName();
                 }
                 else
                 {
-                    int random = UnityEngine.Random.Range(0, randomText.Length);
-                    detailsGUI.text = randomText[random];
+                    int random = Random.Range(0, randomText.Length);
+                    info.detailsGUI.text = randomText[random];
                 }
             }
         } else
         {
-            int random = UnityEngine.Random.Range(0, randomText.Length);
-            detailsGUI.text = randomText[random];
+            int random = Random.Range(0, randomText.Length);
+            info.detailsGUI.text = randomText[random];
         }
     }
 }

@@ -4,12 +4,10 @@ public class Keyboard : Instrument
 {
     public SoundPreset soundPreset;
     public List<Key> keysPressed;
-    private KeyboardInformation info;
 
     void Awake()
     {
         StartUp();
-        info = GetComponentInChildren<KeyboardInformation>();
         keysPressed = new List<Key>();
 
         //Assign Key Indexes
@@ -25,12 +23,12 @@ public class Keyboard : Instrument
         {
             keysPressed.Add(key);
             keysPressed = keysPressed.OrderBy(k => k.index).ToList();
-            info.AddKey(key);
+            myInfo.AddKey(key);
             PlaySound(key.noteSound, false);
         } else
         {
             keysPressed.Remove(key);
-            info.RemoveKey(key);
+            myInfo.RemoveKey(key);
             StopSound(key.noteSound);
         }
     }
