@@ -2,30 +2,25 @@
 using System;
 public class Key : MonoBehaviour
 {
-    Keyboard keyboard;
-    SpriteRenderer spriteRenderer;
-
     public int index;
     public bool active;
-    public KeyColor keyColor;
-
+    public Color[] colors;
     public AudioClip noteSound;
+
+    private HarmonyKeyboard keyboard;
+    private SpriteRenderer spriteRenderer;
+    private Animator animator;
+
     private Color activeColor = new Color(0f, 255/255f, 14/255f);
     private Color normalColor = Color.white;
-    public Color[] colors;
+
 
 
     public void Awake()
     {
-        keyboard = FindObjectOfType<Keyboard>();
+        keyboard = FindObjectOfType<HarmonyKeyboard>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (name.Contains("white"))
-        {
-            keyColor = Key.KeyColor.WHITE;
-        } else
-        {
-            keyColor = Key.KeyColor.BLACK;
-        }
+        animator = GetComponent<Animator>();
     }
 
     public void Start()
@@ -39,13 +34,12 @@ public class Key : MonoBehaviour
     public void OnMouseDown()
     {
         active = !active;
-        spriteRenderer.color = colors[Convert.ToInt32(active)];
+        animator.SetBool("Pressed", active);
+        animator.SetBool("Down", true);
         keyboard.OnKeyPressed(this);
     }
-    
-    public enum KeyColor
+    public void OnMouseUp()
     {
-        WHITE,
-        BLACK
+        animator.SetBool("Down", false);
     }
 }

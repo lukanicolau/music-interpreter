@@ -4,24 +4,23 @@ using System.Collections;
 
 public class Instrument : MonoBehaviour
 {
-    public int volume;
+    [HideInInspector]
     public KeyboardInfo myInfo; //THIS SHOULD BE INSTRUMENT INFO LATER
+    public float volume;
 
     private AudioSource[] audioSources;
     private List<AudioSource> playingAudioSources;
     private List<AudioSource> fadingDownAudioSources;
     private float fadeSpeed = 0.015f;
-    private float sourceVolume;
     public void StartUp()
     {
         myInfo = GetComponentInChildren<KeyboardInfo>();
         audioSources = GetComponents<AudioSource>();
         playingAudioSources = new List<AudioSource>();
         fadingDownAudioSources = new List<AudioSource>();
-        sourceVolume = volume / 100f;   
         foreach (AudioSource source in audioSources)
         {
-            source.volume = sourceVolume;
+            source.volume = volume;
         }
     }
 
@@ -108,12 +107,12 @@ public class Instrument : MonoBehaviour
     private IEnumerator BeginFadeUpSource(AudioSource source, float speed)
     {
         source.volume = 0;
-        while (source.volume <= sourceVolume)
+        while (source.volume <= volume)
         {
             source.volume += speed;
             yield return null;
         }
-        source.volume = sourceVolume;
+        source.volume = volume;
     }
 
     private void FadeDownSource(AudioSource source, float speed)
@@ -131,7 +130,7 @@ public class Instrument : MonoBehaviour
         }
         StopSource(source);
         fadingDownAudioSources.Remove(source);
-        source.volume = sourceVolume;
+        source.volume = volume;
     }
 
 

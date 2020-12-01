@@ -8,9 +8,9 @@ public class KeyboardInfo : InstrumentInfo
     private Chord chord;
 
     private Music.NaturalNote firstNaturalNote;
-    private bool inSharp;
+    private bool noteInSharp;
 
-    private readonly string[] randomText = { "Interesing...", "Umm... I don't know what you just played", "Wow that's Spinetta as fuck", "That's not even a chord" };
+    private readonly string[] randomText = { "Interesting...", "Umm... I don't know what you just played", "Wow that's Spinetta as fuck", "That's not even a chord", "LOL", "XD moment", "....xd"};
 
     private void Awake()
     {
@@ -23,11 +23,7 @@ public class KeyboardInfo : InstrumentInfo
         Music.Note note = Music.GetNote(key);
         notesPlaying.Add(note);
         notesPlaying.Sort();
-        if (notesPlaying.Count == 3)
-        {
-            chord = new Chord(notesPlaying, inSharp);
-        }
-        else if (notesPlaying.Count > 3)
+        if (notesPlaying.Count > 3)
         {
             chord.AddAddition(note);
             chord.UnderstandMe();
@@ -42,10 +38,7 @@ public class KeyboardInfo : InstrumentInfo
         {
             notesPlaying.Remove(note);
         }
-        if (notesPlaying.Count == 3)
-        {
-            chord = new Chord(notesPlaying, inSharp);
-        } else if (notesPlaying.Count > 3)
+        if (notesPlaying.Count > 3)
         {
             chord.RemoveAddition(note);
             chord.UnderstandMe();  
@@ -60,17 +53,17 @@ public class KeyboardInfo : InstrumentInfo
             //For a common and better readability, we'll use Bb and Eb instead of A# and D#
             if (notesPlaying[0] != Music.Note.AA && notesPlaying[0] != Music.Note.DD)
             {
-                inSharp = true;
+                noteInSharp = true;
             }
             else
             {
-                inSharp = false;
+                noteInSharp = false;
             }
         }
 
         if (notesPlaying.Count > 1)
         {
-            if (inSharp)
+            if (noteInSharp)
             {
                 firstNaturalNote = Music.NoteToNatural(notesPlaying[0], -1);
             }
@@ -96,10 +89,9 @@ public class KeyboardInfo : InstrumentInfo
                 {
                     info.notesGUI.text = info.notesGUI.text + "b";
                 }
-
             }
             else {
-                info.notesGUI.text = Music.GetNoteName(notesPlaying[i], inSharp);
+                info.notesGUI.text = Music.GetNoteName(notesPlaying[i], noteInSharp);
             }
         }
 
@@ -117,6 +109,19 @@ public class KeyboardInfo : InstrumentInfo
             info.detailsGUI.text = Music.GetIntervalName(interval);
         } else if (notesPlaying.Count >= 3)
         {
+            if (notesPlaying.Count == 3)
+            {
+                chord = new Chord(notesPlaying);
+                //For a common and better readability, we'll use Bb and Eb instead of A# and D#
+                if (chord.tonic != Music.Note.AA && chord.tonic != Music.Note.DD)
+                {
+                    chord.inSharp = true;
+                } else
+                {
+                    chord.inSharp = false;
+                }
+            }
+
             if (chord.isInterval)
             {
                 Music.Interval interval = Music.GetInterval(chord.differentNotes[0], chord.differentNotes[1]);

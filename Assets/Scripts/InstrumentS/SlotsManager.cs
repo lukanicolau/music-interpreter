@@ -22,7 +22,10 @@ public class SlotsManager : MonoBehaviour
     {
         inInstrument = true;
         cameraController.ZoomIn(luckySlot.transform.position + new Vector3(luckySlot.myCollider.bounds.extents.x, 0, 0), luckySlot.zoomValue, transitionSpeed);
-        luckySlot.instrument.myInfo.UpdateInfo();
+        if (luckySlot.instrument)
+        {
+            luckySlot.instrument.myInfo.UpdateInfo();
+        }
         info.DisplayInfo();
         foreach (InstrumentSlot slot in slots)
         {

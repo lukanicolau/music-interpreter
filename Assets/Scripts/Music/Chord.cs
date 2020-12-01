@@ -14,19 +14,15 @@ public class Chord
     public bool isInterval;
     public List<Music.Note> differentNotes;
 
-    private bool inSharp;
-    private int susN; //Number of sus
-    private int addN;
-    private string addadd = "";
+    public bool inSharp;
 
     private string plusInfo;
     private List<Music.Note> additions;
 
-    public Chord(List<Music.Note> notes, bool inSharp)
+    public Chord(List<Music.Note> notes)
     {
         additions = new List<Music.Note>();
         this.notes = notes;
-        this.inSharp = inSharp;
         differentNotes = new List<Music.Note>();
         differentNotes.AddRange(notes);
         isInterval = false;
@@ -51,19 +47,20 @@ public class Chord
         isUnknown = false;
         isInterval = false;
         Music.Interval[] intervals = new Music.Interval[2];
+        //Set chord characteristics based on three notes (two intervals).
+        //First priority
         for (int i = 0; i < notes.Count - 2; i++) {
             Music.Note[] characteristicNotes = new Music.Note[] { notes[i], notes[i+1], notes[i+2]};
             intervals[0] = Music.GetInterval(characteristicNotes[0], characteristicNotes[1]);
             intervals[1] = Music.GetInterval(characteristicNotes[0], characteristicNotes[2]);
             if (i > 0)
             {
-                additions.Add(notes[i - 1]);
-                additions.Remove(notes[i + 2]);
+                Debug.Log("Additions");
+                AddAddition(notes[i - 1]);
+                Debug.Log("Added" + Music.GetNoteName(notes[i-1],true));
+                RemoveAddition(notes[i + 2]);
+                Debug.Log("Removed" + Music.GetNoteName(notes[i + 2], true));
             }
-
-            //Set chord characteristics based on three notes (two intervals).
-
-            //First priority
             for (int j = 0; j < 3; j++)
             {
                 if (intervals.SequenceEqual(Chords.majorChordInvertions[j]))
@@ -114,23 +111,34 @@ public class Chord
                         SetChord(characteristicNotes[0], (Chords.ChordType)j);
                         if (additions.Count > 0)
                         {
-                            if (Music.GetInterval(tonic, additions[0]) != Music.Interval.MINOR_SEVENTH) plusInfo = "4";
+                            if (Music.GetInterval(tonic, additions[0]) != Music.Interval.MINOR_SEVENTH) plusInfo = "2";
                         }
                         else
                         {
-                            plusInfo = "4";
+                            plusInfo = "2";
                         }
                         return;
                     }
                 }  
             }
-            //Second priority
+        }
+        //Second priority
+        for (int i = 0; i < notes.Count - 2; i++)
+        {
+            Music.Note[] characteristicNotes = new Music.Note[] { notes[i], notes[i + 1], notes[i + 2] };
+            intervals[0] = Music.GetInterval(characteristicNotes[0], characteristicNotes[1]);
+            intervals[1] = Music.GetInterval(characteristicNotes[0], characteristicNotes[2]);
+            if (i > 0)
+            {
+                AddAddition(notes[i - 1]);
+                RemoveAddition(notes[i + 2]);
+            }
             for (int j = 0; j < 2; j++)
             {
                 if (intervals.SequenceEqual(Chords.susChords[j]))
                 {
                     SetChord(characteristicNotes[0], Chords.ChordType.SUS);
-                    plusInfo = plusInfo + (j + 1) * 2;
+                    plusInfo = "" + (j + 1) * 2;
                     return;
                 }
             }
@@ -197,15 +205,6 @@ public class Chord
             }
         }
         return name;
-    }
-
-    //Not better just not adding?? TEST PLEASE
-    private string AddAndRemoveFromString(string myString, string value)
-    {
-        string nameAdd = value;
-        if (myString.Contains(nameAdd)) myString.Remove(myString.IndexOf(nameAdd), nameAdd.Length);
-        myString = myString + nameAdd;
-        return myString;
     }
 
     public void AddAddition(Music.Note addition)
